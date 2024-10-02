@@ -4,10 +4,6 @@ on:
   repository_dispatch:
     types: [run-tests]
 
-on:
-  repository_dispatch:
-    types: [run-tests]
-
 jobs:
   test:
     runs-on: ubuntu-latest
