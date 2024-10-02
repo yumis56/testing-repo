@@ -21,10 +21,44 @@ jobs:
       run: |
         docker build -t playwright-tests .
         docker run --network host -v $PWD/public:/app/public playwright-tests
-    - name: Handle test results
-      run: |
-        # Add logic here to handle test results
-        
-        # fail the workflow if tests fail:
-        if [ $? -ne 0 ]; then exit 1; fi
 
+        
+    - name: Check test results
+      id: test_result
+      run: |
+        # Assuming your test command exits with non-zero status on failure
+        if [ $? -eq 0 ]; then
+          echo "Tests passed"
+          echo "::set-output name=status::success"
+        else
+          echo "Tests failed"
+          echo "::set-output name=status::failure"
+        fi
+
+deploy:
+    needs: test
+    if: needs.test.outputs.status == 'success'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download artifact
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        workflow: build-and-test.yml
+        name: hexo-site
+        path: public
+        repo: your-username/project-repo
+        
+    - name: Deploy to production
+      env:
+        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git clone --single-branch --branch gh-pages https://github.com/yumis56/project-repo.git deploy
+        cd deploy
+        rm -rf *
+        cp -r ../public/* .
+        git add .
+        git commit -m "Deploy website" || echo "No changes to commit"
+        git push https://${GITHUB_ACTOR}:${DEPLOY_KEY}@github.com/yumis56/project-repo.git gh-pages
