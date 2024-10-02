@@ -13,10 +13,10 @@ jobs:
       uses: dawidd6/action-download-artifact@v2
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
-        workflow: build-and-test.yml
+        workflow: build-test.yml
         name: hexo-site
         path: public
-        repo: your-username/project-repo
+        repo: yumis56/project-repo
     - name: Run Playwright tests
       run: |
         docker build -t playwright-tests .
